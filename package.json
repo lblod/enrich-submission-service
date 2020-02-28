@@ -1,0 +1,19 @@
+{
+  "name": "enrich-submission-service",
+  "version": "0.0.0",
+  "description": "Microservice to enrich a submission harvested from a published document.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lblod/enrich-submission-service.git"
+  },
+  "author": "redpencil.io",
+  "license": "MIT",
+  "dependencies": {
+    "@lblod/mu-auth-sudo": "^0.2.0",
+    "body-parser": "1.19.0",
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
