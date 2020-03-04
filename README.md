@@ -63,7 +63,7 @@ Returns an object with
 * form: TTL containing the description of the forms
 
 ```
-PUT /submission-forms/:uuid
+PUT /submission-documents/:uuid
 
 expected payload: {
  additions: '',
