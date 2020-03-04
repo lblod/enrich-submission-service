@@ -19,10 +19,17 @@ Configure the delta-notification service to send notifications on the `/delta` e
 export default [
   {
     match: {
-      // TODO define matching criteria
+      predicate: {
+        type: 'uri',
+        value: 'http://www.w3.org/ns/adms#status'
+      },
+      object: {
+        type: 'uri',
+        value: 'http://lblod.data.gift/automatische-melding-statuses/ready-for-enrichment'
+      }
     },
     callback: {
-      url: 'http://validate-submission/delta',
+      url: 'http://enrich-submission/delta',
       method: 'POST'
     },
     options: {
