@@ -1,5 +1,5 @@
 # enrich-submission-service
-Microservice to enrich a submission harvested from a published document. A submission can be enriched based on data in the triple store and by manual editing.
+Microservice to enrich a submission harvested from a published document. A submission can be enriched with data from the triple store.
 
 ## Installation
 Add the following snippet to your `docker-compose.yml`:
@@ -47,7 +47,7 @@ export default [
 ```
 POST /delta
 ```
-Triggers the enrichment for harvested publications.
+Triggers the enrichment for harvested publications. I.e. prepares a meta TTL containing data from the store that is required to fill in and validate the form.
 
 ### Manual editing of submission documents
 ```
@@ -59,18 +59,8 @@ Returns an object with
 * source: TTL of the harvested data (in case of a concept submission) or sent data (in case of a sent submission)
 * additions: TTL containing manual added triples
 * removals: TTL containing manual removed triples
-* meta: TTL containing additional data to fill in the forms
+* meta: TTL containing additional data to fill in and validate the forms. The TTL is a snapshot of the current meta data at the moment of the request. It may change over time as long as the submission is in concept state.
 * form: TTL containing the description of the forms
-
-```
-PUT /submission-documents/:uuid
-
-expected payload: {
- additions: '',
- removals: ''
-}
-```
-Update a submission document based on the submitted document uuid.
 
 ## Related services
 The following services are also involved in the automatic processing of a submission:
