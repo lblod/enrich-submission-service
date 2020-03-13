@@ -99,7 +99,7 @@ app.get('/submission-documents/:uuid', async function(req, res, next) {
 /**
  * Deletes a submission form (if not already submitted) as well as the related resources
 */
-app.delete('/delete-submission-documents/:uuid', async function(req, res, next) {
+app.delete('/submission-documents/:uuid', async function(req, res, next) {
   const uuid = req.params.uuid;
   try {
     const httpCode = await deleteSubmissionDocument(uuid);
