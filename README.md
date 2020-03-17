@@ -62,6 +62,13 @@ Returns an object with
 * meta: TTL containing additional data to fill in and validate the forms. The TTL is a snapshot of the current meta data at the moment of the request. It may change over time as long as the submission is in concept state.
 * form: TTL containing the description of the forms
 
+
+### Manual deletion of submission documents
+```
+DELETE /submission-documents/:uuid
+```
+Deletes the data and related disk files for a submission form based on the submitted document uuid.
+
 ## Related services
 The following services are also involved in the automatic processing of a submission:
 * [automatic-submission-service](https://github.com/lblod/automatic-submission-service)
