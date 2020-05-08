@@ -4,6 +4,18 @@ import flatten from 'lodash.flatten';
 import { TASK_READY_FOR_ENRICHMENT_STATUS, TASK_READY_FOR_VALIDATION_STATUS, TASK_ONGOING_STATUS, TASK_FAILURE_STATUS, updateTaskStatus } from './lib/submission-task';
 import { getSubmissionDocument, deleteSubmissionDocument, getSubmissionDocumentByTask, calculateMetaSnapshot, SENT_STATUS } from './lib/submission-document';
 
+
+function setup() {
+  if (!process.env.ACTIVE_FORM_FILE) {
+    throw new Error(
+      "For this service to work an environment variable ACTIVE_FORM_FILE should be configured and " +
+      "contain a value of the format `share://semantic-forms/20200406160856-forms.ttl`.\n" +
+      "This variable is used to obtain the current form configuration.");
+  }
+}
+
+setup();
+
 app.use(bodyParser.json({ type: function(req) { return /^application\/json/.test(req.get('content-type')); } }));
 
 app.get('/', function(req, res) {
