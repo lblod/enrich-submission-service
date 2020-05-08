@@ -5,11 +5,17 @@ Microservice to enrich a submission harvested from a published document. A submi
 Add the following snippet to your `docker-compose.yml`:
 
 ```yml
-enrich-submission:
+enrich-submission:.
   image: lblod/enrich-submission-service
+  environment:
+    ACTIVE_FORM_FILE: "share://semantic-forms/<your-active-form-definitions>.ttl"
   volumes:
+    - ./config/semantic-forms:/share/semantic-forms
     - ./data/files/submissions:/share/submissions
 ```
+The `ACTIVE_FORM_FILE` environment variable must contain a Turtle file URI, with the format `share://semantic-forms/<your-active-form-definitions>.ttl`, which contains the current active form definitions.
+
+The volume mounted in `/share/semantic-forms` must contain all the Turtle files containing current and deprecated form definitions. We recommend adding a timestamp to the Turtle file names to differentiate them over time.
 
 The volume mounted in `/share/submissions` must contain the Turtle files containing the data harvested from the published documents. The resulting Turtle files to fill in the forms will also be written to this folder.
 
