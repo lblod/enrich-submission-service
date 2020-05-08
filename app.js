@@ -2,7 +2,14 @@ import { app, errorHandler } from 'mu';
 import bodyParser from 'body-parser';
 import flatten from 'lodash.flatten';
 import { TASK_READY_FOR_ENRICHMENT_STATUS, TASK_READY_FOR_VALIDATION_STATUS, TASK_ONGOING_STATUS, TASK_FAILURE_STATUS, updateTaskStatus } from './lib/submission-task';
-import { getSubmissionDocument, deleteSubmissionDocument, getSubmissionDocumentByTask, calculateMetaSnapshot, SENT_STATUS } from './lib/submission-document';
+import {
+  getSubmissionDocument,
+  deleteSubmissionDocument,
+  getSubmissionDocumentByTask,
+  calculateMetaSnapshot,
+  SENT_STATUS,
+  calculateActiveForm
+} from './lib/submission-document';
 
 
 function setup() {
@@ -39,6 +46,7 @@ app.post('/delta', async function(req, res, next) {
 
       const enrich = async (submissionDocument) => {
         try {
+          await calculateActiveForm(submissionDocument);
           await calculateMetaSnapshot(submissionDocument);
           await updateTaskStatus(task, TASK_READY_FOR_VALIDATION_STATUS);
         } catch (e) {
