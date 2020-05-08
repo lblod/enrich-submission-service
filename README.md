@@ -92,9 +92,9 @@ ___
 `foaf:Document` (and `ext:SubmissionDocument`)
 
 ##### Properties
-| Name   | Predicate    | Range                | Definition                                                                                                                                   |
-|--------|--------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| source | `dct:source` | `nfo:FileDataObject` | TTL files containing data about the submitted document. The TTL files have different types (harvested data, additions, removals, meta, form) |
+| Name   | Predicate    | Range                | Definition                                                                                 |
+|--------|--------------|----------------------|--------------------------------------------------------------------------------------------|
+| source | `dct:source` | `nfo:FileDataObject` | TTL files containing data about the submitted document. The TTL files have different types |
 
 ___
 #### Turtle file
@@ -106,15 +106,16 @@ TTL file containing triples used to fill in a form.
 ##### Properties
 | Name | Predicate    | Range                | Definition                                                                                                                                   |
 |------|--------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| type | `dct:type` | `nfo:FileDataObject` | TTL files containing data about the submitted document. The TTL files have different types (harvested data, additions, removals, meta, form) |
+| type | `dct:type` | `nfo:FileDataObject` | Type of the TTL file (additions, removals, meta, form, current filled in form data) |
 
 Additional properties are specified in the model of the [file service](https://github.com/mu-semtech/file-service#resources).
 
 Possible values of the file type are:
 * http://data.lblod.gift/concepts/form-file-type: file containing the semantic form description
-* http://data.lblod.gift/concepts/form-data-file-type: file containing the harvested data
+* http://data.lblod.gift/concepts/form-data-file-type: file containing the current filled in data of the form
 * http://data.lblod.gift/concepts/additions-file-type: file containing manually added triples
 * http://data.lblod.gift/concepts/removals-file-type: file containing manually removed triples
+* http://data.lblod.gift/concepts/meta-file-type: file containing additonal data from the triple store to fill in and validate the form
 
 ## Related services
 The following services are also involved in the automatic processing of a submission:
