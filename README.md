@@ -69,13 +69,6 @@ Returns an object with
 * meta: TTL containing additional data to fill in and validate the forms. The TTL is a snapshot of the current meta data at the moment of the request. It may change over time as long as the submission is in concept state.
 * form: TTL containing the description of the forms. The form is the current active form at the moment of the request. It may change over time as long as the submission is in concept state.
 
-
-#### Manual deletion of submission document
-```
-DELETE /submission-documents/:uuid
-```
-Deletes the data and related files on disk for a submission form based on the submitted document uuid.
-
 ### Model
 #### Automatic submission task
 A resource describing the status and progress of the processing of an automatic submission.

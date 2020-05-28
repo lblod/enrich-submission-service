@@ -4,10 +4,8 @@ import flatten from 'lodash.flatten';
 import { TASK_READY_FOR_ENRICHMENT_STATUS, TASK_READY_FOR_VALIDATION_STATUS, TASK_ONGOING_STATUS, TASK_FAILURE_STATUS, updateTaskStatus } from './lib/submission-task';
 import {
   getSubmissionDocument,
-  deleteSubmissionDocument,
   getSubmissionDocumentByTask,
   calculateMetaSnapshot,
-  SENT_STATUS,
   calculateActiveForm
 } from './lib/submission-document';
 
@@ -111,29 +109,6 @@ app.get('/submission-documents/:uuid', async function(req, res, next) {
     return res.status(200).send(submissionDocument);
   } catch (e) {
     console.log(`Something went wrong while retrieving submission with id ${uuid}`);
-    console.log(e);
-    return next(e);
-  }
-});
-
-/**
- * Deletes a submission form (if not already submitted) as well as the related resources
-*/
-app.delete('/submission-documents/:uuid', async function(req, res, next) {
-  const uuid = req.params.uuid;
-  try {
-    const { submissionDocument, status } = await deleteSubmissionDocument(uuid);
-    if (submissionDocument) {
-      if (status == SENT_STATUS) {
-        return res.status(409).send();
-      } else {
-        return res.status(200).send();
-      }
-    } else {
-      return res.status(404).send();
-    }
-  } catch (e) {
-    console.log(`Something went wrong while deleting submission with id ${uuid}`);
     console.log(e);
     return next(e);
   }
