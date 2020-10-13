@@ -51,6 +51,8 @@ app.post('/delta', async function(req, res, next) {
           await updateTaskStatus(task, TASK_READY_FOR_VALIDATION_STATUS);
         } catch (e) {
           await updateTaskStatus(task, TASK_FAILURE_STATUS);
+          console.log(`Something went wrong while handling deltas for automatic submission task ${task}`);
+          console.log(e);
         }
       };
 
