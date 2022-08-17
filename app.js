@@ -51,7 +51,6 @@ app.post('/delta', async function (req, res, next) {
       try {
         await updateTaskStatus(taskUri, env.TASK_ONGOING_STATUS);
         
-        debugger;
         const submissionDocument = await getSubmissionDocumentFromTask(taskUri);
         await calculateActiveForm(submissionDocument);
         await calculateMetaSnapshot(submissionDocument);
