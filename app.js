@@ -1,11 +1,10 @@
 import { app, errorHandler } from 'mu';
 import bodyParser from 'body-parser';
-import flatten from 'lodash.flatten';
-import { TASK_READY_FOR_ENRICHMENT_STATUS, TASK_READY_FOR_VALIDATION_STATUS, TASK_ONGOING_STATUS, TASK_FAILURE_STATUS, updateTaskStatus } from './lib/submission-task';
+import { updateTaskStatus } from './lib/submission-task';
 import {
   getSubmissionDocument,
   deleteSubmissionDocument,
-  getSubmissionDocumentByTask,
+  getSubmissionDocumentFromTask,
   calculateMetaSnapshot,
   SENT_STATUS,
   calculateActiveForm
@@ -34,70 +33,47 @@ app.get('/', function(req, res) {
 /*
  * DELTA HANDLING
 */
-app.post('/delta', async function(req, res, next) {
-  const tasks = getAutomaticSubmissionTasks(req.body);
-  if (!tasks.length) {
-    console.log("Delta does not contain an automatic submission task with status 'ready-for-enrichment'. Nothing should happen.");
-    return res.status(204).send();
-  }
+app.post('/delta', async function (req, res, next) {
+  //We can already send a 200 back. The delta-notifier does not care about the result, as long as the request is closed.
+  res.status(200).send().end();
+  
+  try {
+    //Don't trust the delta-notifier, filter as best as possible. We just need the task that was created to get started.
+    const actualTaskUris = req.body
+      .map((changeset) => changeset.inserts)
+      .filter((inserts) => inserts.length > 0)
+      .flat()
+      .filter((insert) => insert.predicate.value === env.OPERATION_PREDICATE)
+      .filter((insert) => insert.object.value === env.ENRICH_OPERATION)
+      .map((insert) => insert.subject.value);
 
-  for (let task of tasks) {
-    try {
-      await updateTaskStatus(task, TASK_ONGOING_STATUS);
-      const submissionDocument = await getSubmissionDocumentByTask(task);
-
-      const enrich = async (submissionDocument) => {
-        try {
-          await calculateActiveForm(submissionDocument);
-          await calculateMetaSnapshot(submissionDocument);
-          await updateTaskStatus(task, TASK_READY_FOR_VALIDATION_STATUS);
-        } catch (e) {
-          await updateTaskStatus(task, TASK_FAILURE_STATUS);
-          console.log(`Something went wrong while handling deltas for automatic submission task ${task}`);
-          console.log(e);
-        }
-      };
-
-      if (submissionDocument)
-        enrich(submissionDocument); // async processing
-      else
-        console.log(`No submission document found for task ${task}`);
-    } catch (e) {
-      console.log(`Something went wrong while handling deltas for automatic submission task ${task}`);
-      console.log(e);
+    for (const taskUri of actualTaskUris) {
       try {
-        await updateTaskStatus(task, TASK_FAILURE_STATUS);
-      } catch (e) {
-        console.log(`Failed to update state of task ${task} to failure state. Is the connection to the database broken?`);
+        await updateTaskStatus(taskUri, env.TASK_ONGOING_STATUS);
+        
+        debugger;
+        const submissionDocument = await getSubmissionDocumentFromTask(taskUri);
+        await calculateActiveForm(submissionDocument);
+        await calculateMetaSnapshot(submissionDocument);
+
+        await updateTaskStatus(taskUri, env.TASK_SUCCESS_STATUS);
       }
-      return next(e);
+      catch (error) {
+        const message = `Something went wrong while enriching for task ${taskUri}`;
+        console.error(`${message}\n`, error.message);
+        console.error(error);
+        const errorUri = await saveError({ message, detail: error.message, });
+        await updateTaskStatus(taskUri, env.TASK_FAILURE_STATUS, errorUri);
+      }
     }
   }
-
-  return res.status(200).send({ data: tasks });
+  catch (error) {
+    const message = 'The task for enriching a submission could not even be started or finished due to an unexpected problem.';
+    console.error(`${message}\n`, error.message);
+    console.error(error);
+    await saveError({ message, detail: error.message, });
+  }
 });
-
-/**
- * Returns the automatic submission tasks that are ready for enrichment
- * from the delta message. An empty array if there are none.
- *
- * @param Object delta Message as received from the delta notifier
-*/
-function getAutomaticSubmissionTasks(delta) {
-  const inserts = flatten(delta.map(changeSet => changeSet.inserts));
-  return inserts.filter(isTriggerTriple).map(t => t.subject.value);
-}
-
-/**
- * Returns whether the passed triple is a trigger for the enrichment process
- *
- * @param Object triple Triple as received from the delta notifier
-*/
-function isTriggerTriple(triple) {
-  return triple.predicate.value == 'http://www.w3.org/ns/adms#status'
-    && triple.object.value == TASK_READY_FOR_ENRICHMENT_STATUS;
-};
-
 
 /*
  * SUBMISSION DOCUMENT ENDPOINTS
