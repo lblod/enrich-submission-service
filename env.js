@@ -7,7 +7,7 @@ export const TASK_ONGOING_STATUS = 'http://redpencil.data.gift/id/concept/JobSta
 export const TASK_SUCCESS_STATUS = 'http://redpencil.data.gift/id/concept/JobStatus/success';
 export const TASK_FAILURE_STATUS = 'http://redpencil.data.gift/id/concept/JobStatus/failed';
 
-const PREFIX_TABLE = {
+export const PREFIX_TABLE = {
   meb:          'http://rdf.myexperiment.org/ontologies/base/',
   xsd:          'http://www.w3.org/2001/XMLSchema#',
   pav:          'http://purl.org/pav/',
@@ -32,6 +32,7 @@ const PREFIX_TABLE = {
   wotSec:       'https://www.w3.org/2019/wot/security#',
   task:         'http://redpencil.data.gift/vocabularies/tasks/',
   asj:          'http://data.lblod.info/id/automatic-submission-job/',
+  dbpedia:      'http://dbpedia.org/ontology/',
 };
 
 export const PREFIXES = (() => {
