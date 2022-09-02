@@ -41,11 +41,3 @@ export const PREFIXES = (() => {
     all.push(`PREFIX ${key}: <${PREFIX_TABLE[key]}>`);
   return all.join('\n');
 })();
-
-export function getPrefixes(collOfPrefixes) {
-  const all = [];
-  for (const key of collOfPrefixes)
-    all.push(`PREFIX ${key}: <${PREFIX_TABLE[key]}>`);
-  return all.join('\n');
-}
-
