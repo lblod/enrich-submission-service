@@ -1,6 +1,5 @@
 import { app, errorHandler } from 'mu';
 import bodyParser from 'body-parser';
-import { updateTaskStatus } from './lib/submission-task';
 import {
   getSubmissionDocument,
   deleteSubmissionDocument,
@@ -11,8 +10,9 @@ import {
 } from './lib/submission-document';
 import * as env from './env.js';
 import * as cts from './automatic-submission-flow-tools/constants.js';
-import { saveError } from './lib/utils.js';
+import * as tsk from './automatic-submission-flow-tools/asfTasks.js';
 import * as del from './automatic-submission-flow-tools/deltas.js';
+import * as err from './automatic-submission-flow-tools/errors.js';
 import * as N3 from 'n3';
 const { namedNode } = N3.DataFactory;
 
@@ -55,7 +55,11 @@ app.post('/delta', async function (req, res) {
 
     for (const task of actualTasks) {
       try {
-        await updateTaskStatus(task.value, cts.TASK_STATUSES.busy);
+        await tsk.updateStatus(
+          task,
+          namedNode(cts.TASK_STATUSES.busy),
+          namedNode(cts.SERVICES.enrichSubmission)
+        );
 
         const submissionDocument = await getSubmissionDocumentFromTask(
           task.value
@@ -65,18 +69,24 @@ app.post('/delta', async function (req, res) {
           submissionDocument
         );
 
-        await updateTaskStatus(
-          task.value,
-          cts.TASK_STATUSES.success,
-          undefined,
-          logicalFileUri
+        await tsk.updateStatus(
+          task,
+          namedNode(cts.TASK_STATUSES.success),
+          namedNode(cts.SERVICES.enrichSubmission),
+          { files: [namedNode(logicalFileUri)] }
         );
       } catch (error) {
         const message = `Something went wrong while enriching for task ${task.value}`;
         console.error(`${message}\n`, error.message);
         console.error(error);
-        const errorUri = await saveError({ message, detail: error.message });
-        await updateTaskStatus(task.value, cts.TASK_STATUSES.failed, errorUri);
+        const errorNode = await err.create(message, error.message);
+        await tsk.updateStatus(
+          task,
+          namedNode(cts.TASK_STATUSES.failed),
+          namedNode(cts.SERVICES.enrichSubmission),
+          undefined,
+          errorNode
+        );
       }
     }
   } catch (error) {
@@ -84,7 +94,7 @@ app.post('/delta', async function (req, res) {
       'The task for enriching a submission could not even be started or finished due to an unexpected problem.';
     console.error(`${message}\n`, error.message);
     console.error(error);
-    await saveError({ message, detail: error.message });
+    await err.create(message, error.message);
   }
 });
 
