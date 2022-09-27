@@ -1,0 +1,3 @@
+[submodule "automatic-submission-flow-tools"]
+	path = automatic-submission-flow-tools
+	url = git@github.com:lblod/automatic-submission-flow-tools.git
