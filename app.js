@@ -22,6 +22,7 @@ function setup() {
 
 setup();
 
+app.use(errorHandler);
 app.use(
   bodyParser.json({
     type: function (req) {
