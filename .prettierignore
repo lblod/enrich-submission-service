@@ -1,0 +1,12 @@
+# compiled output
+/dist/
+/tmp/
+
+# dependencies
+/bower_components/
+/node_modules/
+
+# misc
+/coverage/
+!.*
+.eslintcache
