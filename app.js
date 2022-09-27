@@ -12,6 +12,9 @@ import {
 import * as env from './env.js';
 import * as cts from './automatic-submission-flow-tools/constants.js';
 import { saveError } from './lib/utils.js';
+import * as del from './automatic-submission-flow-tools/deltas.js';
+import * as N3 from 'n3';
+const { namedNode } = N3.DataFactory;
 
 function setup() {
   if (!env.ACTIVE_FORM_FILE)
@@ -44,39 +47,36 @@ app.post('/delta', async function (req, res) {
 
   try {
     //Don't trust the delta-notifier, filter as best as possible. We just need the task that was created to get started.
-    const actualTaskUris = req.body
-      .map((changeset) => changeset.inserts)
-      .filter((inserts) => inserts.length > 0)
-      .flat()
-      .filter(
-        (insert) =>
-          insert.predicate.value === cts.PREDICATE_TABLE.task_operation
-      )
-      .filter((insert) => insert.object.value === cts.OPERATIONS.enrich)
-      .map((insert) => insert.subject.value);
+    const actualTasks = del.getSubjects(
+      req.body,
+      namedNode(cts.PREDICATE_TABLE.task_operation),
+      namedNode(cts.OPERATIONS.enrich)
+    );
 
-    for (const taskUri of actualTaskUris) {
+    for (const task of actualTasks) {
       try {
-        await updateTaskStatus(taskUri, cts.TASK_STATUSES.busy);
+        await updateTaskStatus(task.value, cts.TASK_STATUSES.busy);
 
-        const submissionDocument = await getSubmissionDocumentFromTask(taskUri);
+        const submissionDocument = await getSubmissionDocumentFromTask(
+          task.value
+        );
         await calculateActiveForm(submissionDocument);
         const { logicalFileUri } = await calculateMetaSnapshot(
           submissionDocument
         );
 
         await updateTaskStatus(
-          taskUri,
+          task.value,
           cts.TASK_STATUSES.success,
           undefined,
           logicalFileUri
         );
       } catch (error) {
-        const message = `Something went wrong while enriching for task ${taskUri}`;
+        const message = `Something went wrong while enriching for task ${task.value}`;
         console.error(`${message}\n`, error.message);
         console.error(error);
         const errorUri = await saveError({ message, detail: error.message });
-        await updateTaskStatus(taskUri, cts.TASK_STATUSES.failed, errorUri);
+        await updateTaskStatus(task.value, cts.TASK_STATUSES.failed, errorUri);
       }
     }
   } catch (error) {
