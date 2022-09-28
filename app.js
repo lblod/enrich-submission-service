@@ -3,7 +3,6 @@ import bodyParser from 'body-parser';
 import {
   getSubmissionDocument,
   deleteSubmissionDocument,
-  getSubmissionDocumentFromTask,
   calculateMetaSnapshot,
   SENT_STATUS,
   calculateActiveForm,
@@ -12,6 +11,7 @@ import * as env from './env.js';
 import * as cts from './automatic-submission-flow-tools/constants.js';
 import * as tsk from './automatic-submission-flow-tools/asfTasks.js';
 import * as del from './automatic-submission-flow-tools/deltas.js';
+import * as smt from '../automatic-submission-flow-tools/asfSubmissions.js';
 import * as err from './automatic-submission-flow-tools/errors.js';
 import * as N3 from 'n3';
 const { namedNode } = N3.DataFactory;
@@ -61,12 +61,12 @@ app.post('/delta', async function (req, res) {
           namedNode(cts.SERVICES.enrichSubmission)
         );
 
-        const submissionDocument = await getSubmissionDocumentFromTask(
-          task.value
+        const submissionDocument = await smt.getSubmissionDocumentFromTask(
+          task
         );
-        await calculateActiveForm(submissionDocument);
+        await calculateActiveForm(submissionDocument.value);
         const { logicalFileUri } = await calculateMetaSnapshot(
-          submissionDocument
+          submissionDocument.value
         );
 
         await tsk.updateStatus(
@@ -130,7 +130,7 @@ app.delete('/submission-documents/:uuid', async function (req, res, next) {
   try {
     const { submissionDocument, status } = await deleteSubmissionDocument(uuid);
     if (submissionDocument) {
-      if (status == SENT_STATUS) {
+      if (status.value == SENT_STATUS) {
         return res.status(409).send();
       } else {
         return res.status(200).send();
@@ -146,5 +146,3 @@ app.delete('/submission-documents/:uuid', async function (req, res, next) {
     return next(e);
   }
 });
-
-app.use(errorHandler);
