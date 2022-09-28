@@ -11,7 +11,7 @@ import * as env from './env.js';
 import * as cts from './automatic-submission-flow-tools/constants.js';
 import * as tsk from './automatic-submission-flow-tools/asfTasks.js';
 import * as del from './automatic-submission-flow-tools/deltas.js';
-import * as smt from '../automatic-submission-flow-tools/asfSubmissions.js';
+import * as smt from './automatic-submission-flow-tools/asfSubmissions.js';
 import * as err from './automatic-submission-flow-tools/errors.js';
 import * as N3 from 'n3';
 const { namedNode } = N3.DataFactory;
