@@ -79,7 +79,11 @@ app.post('/delta', async function (req, res) {
         const message = `Something went wrong while enriching for task ${task.value}`;
         console.error(`${message}\n`, error.message);
         console.error(error);
-        const errorNode = await err.create(message, error.message);
+        const errorNode = await err.create(
+          namedNode(cts.SERVICES.enrichSubmission),
+          message,
+          error.message
+        );
         await tsk.updateStatus(
           task,
           namedNode(cts.TASK_STATUSES.failed),
@@ -94,7 +98,11 @@ app.post('/delta', async function (req, res) {
       'The task for enriching a submission could not even be started or finished due to an unexpected problem.';
     console.error(`${message}\n`, error.message);
     console.error(error);
-    await err.create(message, error.message);
+    await err.create(
+      namedNode(cts.SERVICES.enrichSubmission),
+      message,
+      error.message
+    );
   }
 });
 
