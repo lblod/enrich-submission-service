@@ -9,12 +9,12 @@
   "author": "redpencil.io",
   "license": "MIT",
   "dependencies": {
-    "automatic-submission-flow-tools": "file:automatic-submission-flow-tools",
     "@lblod/mu-auth-sudo": "^0.6.0",
+    "automatic-submission-flow-tools": "file:automatic-submission-flow-tools",
     "body-parser": "1.20.0",
     "event-stream": "^4.0.1",
     "n3": "^1.16.2",
-    "rdf-string-ttl": "^1.2.0",
+    "rdf-string-ttl": "github:benjay10/rdf-string-ttl.js",
     "sparqljson-parse": "^2.1.1",
     "uuid": "^9.0.0"
   },
