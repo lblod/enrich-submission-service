@@ -4,14 +4,14 @@ import { updateTaskStatus } from './lib/submission-task';
 import {
   getSubmissionDocument,
   deleteSubmissionDocument,
-  getSubmissionDocumentFromTask,
+  getSubmissionDocumentInfoFromTask,
   calculateMetaSnapshot,
   SENT_STATUS,
   calculateActiveForm
 } from './lib/submission-document';
 import * as env from './env.js';
 import { saveError } from './lib/utils.js';
-
+import * as config from './config';
 
 function setup() {
   if (!process.env.ACTIVE_FORM_FILE) {
@@ -51,9 +51,11 @@ app.post('/delta', async function (req, res, next) {
       try {
         await updateTaskStatus(taskUri, env.TASK_ONGOING_STATUS);
         
-        const submissionDocument = await getSubmissionDocumentFromTask(taskUri);
-        await calculateActiveForm(submissionDocument);
-        const { logicalFileUri } = await calculateMetaSnapshot(submissionDocument);
+        const { submissionDocument, organisationId } = await getSubmissionDocumentInfoFromTask(taskUri);
+        const reqState = { req, submissionDocument, organisationId };
+        reqState.submissionGraph = config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
+        await calculateActiveForm(submissionDocument, undefined, reqState);
+        const { logicalFileUri } = await calculateMetaSnapshot(submissionDocument, reqState);
 
         await updateTaskStatus(taskUri, env.TASK_SUCCESS_STATUS, undefined, logicalFileUri);
       }
@@ -86,7 +88,8 @@ app.post('/delta', async function (req, res, next) {
 app.get('/submission-documents/:uuid', async function(req, res, next) {
   const uuid = req.params.uuid;
   try {
-    const submissionDocument = await getSubmissionDocument(uuid);
+    const reqState = { req };
+    const submissionDocument = await getSubmissionDocument(uuid, reqState);
     return res.status(200).send(submissionDocument);
   } catch (e) {
     console.log(`Something went wrong while retrieving submission with id ${uuid}`);
@@ -102,7 +105,8 @@ app.get('/submission-documents/:uuid', async function(req, res, next) {
 app.delete('/submission-documents/:uuid', async function(req, res, next) {
   const uuid = req.params.uuid;
   try {
-    const { submissionDocument, status } = await deleteSubmissionDocument(uuid);
+    const reqState = { req };
+    const { submissionDocument, status } = await deleteSubmissionDocument(uuid, reqState);
     if (submissionDocument) {
       if (status == SENT_STATUS) {
         return res.status(409).send();
