@@ -56,9 +56,9 @@ app.post('/delta', async function (req, res, next) {
         const submissionDocument = await getSubmissionDocumentFromTask(taskUri);
         const reqState = { req, submissionDocument, organisationId, submissionGraph };
         await calculateActiveForm(submissionDocument, undefined, reqState);
-        const { logicalFileUri } = await calculateMetaSnapshot(submissionDocument, reqState);
+        const { logicalFile } = await calculateMetaSnapshot(submissionDocument, reqState);
 
-        await updateTaskStatus(taskUri, env.TASK_SUCCESS_STATUS, undefined, logicalFileUri, submissionGraph);
+        await updateTaskStatus(taskUri, env.TASK_SUCCESS_STATUS, undefined, logicalFile, submissionGraph);
       }
       catch (error) {
         const message = `Something went wrong while enriching for task ${taskUri}`;
