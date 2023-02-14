@@ -1,6 +1,6 @@
 import { app, errorHandler } from 'mu';
 import bodyParser from 'body-parser';
-import { updateTaskStatus } from './lib/submission-task';
+import { updateTaskStatus, getOrganisationIdFromTask } from './lib/submission-task';
 import {
   getSubmissionDocument,
   deleteSubmissionDocument,
@@ -11,7 +11,7 @@ import {
 } from './lib/submission-document';
 import * as env from './env.js';
 import { saveError } from './lib/utils.js';
-
+import * as config from './config';
 
 function setup() {
   if (!process.env.ACTIVE_FORM_FILE) {
@@ -49,20 +49,25 @@ app.post('/delta', async function (req, res, next) {
 
     for (const taskUri of actualTaskUris) {
       try {
-        await updateTaskStatus(taskUri, env.TASK_ONGOING_STATUS);
+        const organisationId = await getOrganisationIdFromTask(taskUri);
+        const submissionGraph = config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
+        await updateTaskStatus(taskUri, env.TASK_ONGOING_STATUS, undefined, undefined, submissionGraph);
         
         const submissionDocument = await getSubmissionDocumentFromTask(taskUri);
-        await calculateActiveForm(submissionDocument);
-        const { logicalFile } = await calculateMetaSnapshot(submissionDocument);
+        const reqState = { req, submissionDocument, organisationId, submissionGraph };
+        await calculateActiveForm(submissionDocument, undefined, reqState);
+        const { logicalFile } = await calculateMetaSnapshot(submissionDocument, reqState);
 
-        await updateTaskStatus(taskUri, env.TASK_SUCCESS_STATUS, undefined, logicalFile);
+        await updateTaskStatus(taskUri, env.TASK_SUCCESS_STATUS, undefined, logicalFile, submissionGraph);
       }
       catch (error) {
         const message = `Something went wrong while enriching for task ${taskUri}`;
         console.error(`${message}\n`, error.message);
         console.error(error);
         const errorUri = await saveError({ message, detail: error.message, });
-        await updateTaskStatus(taskUri, env.TASK_FAILURE_STATUS, errorUri);
+        const organisationId = await getOrganisationIdFromTask(taskUri);
+        const submissionGraph = config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
+        await updateTaskStatus(taskUri, env.TASK_FAILURE_STATUS, errorUri, undefined, submissionGraph);
       }
     }
   }
@@ -86,7 +91,8 @@ app.post('/delta', async function (req, res, next) {
 app.get('/submission-documents/:uuid', async function(req, res, next) {
   const uuid = req.params.uuid;
   try {
-    const submissionDocument = await getSubmissionDocument(uuid);
+    const reqState = { req };
+    const submissionDocument = await getSubmissionDocument(uuid, reqState);
     return res.status(200).send(submissionDocument);
   } catch (e) {
     console.log(`Something went wrong while retrieving submission with id ${uuid}`);
@@ -102,7 +108,8 @@ app.get('/submission-documents/:uuid', async function(req, res, next) {
 app.delete('/submission-documents/:uuid', async function(req, res, next) {
   const uuid = req.params.uuid;
   try {
-    const { submissionDocument, status } = await deleteSubmissionDocument(uuid);
+    const reqState = { req };
+    const { submissionDocument, status } = await deleteSubmissionDocument(uuid, reqState);
     if (submissionDocument) {
       if (status == SENT_STATUS) {
         return res.status(409).send();
