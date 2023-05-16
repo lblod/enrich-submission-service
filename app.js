@@ -51,7 +51,7 @@ app.post('/delta', async function (req, res, next) {
       try {
         const organisationId = await getOrganisationIdFromTask(taskUri);
         const submissionGraph =
-              config.TOEZICHT_MODE ? config.TOEZICHT_GRAPH : config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
+              config.SINGLE_GRAPH_MODE ? config.SOURCE_GRAPH : config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
         await updateTaskStatus(taskUri, env.TASK_ONGOING_STATUS, undefined, undefined, submissionGraph);
 
         const submissionDocument = await getSubmissionDocumentFromTask(taskUri);
@@ -68,7 +68,7 @@ app.post('/delta', async function (req, res, next) {
         const errorUri = await saveError({ message, detail: error.message, });
         const organisationId = await getOrganisationIdFromTask(taskUri);
         const submissionGraph =
-              config.TOEZICHT_MODE ? config.TOEZICHT_GRAPH : config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
+              config.SINGLE_GRAPH_MODE ? config.SOURCE_GRAPH : config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
         await updateTaskStatus(taskUri, env.TASK_FAILURE_STATUS, errorUri, undefined, submissionGraph);
       }
     }

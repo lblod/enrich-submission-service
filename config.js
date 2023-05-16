@@ -1,10 +1,10 @@
 import * as env from 'env-var';
 
-export const TOEZICHT_MODE = env.get('TOEZICHT_MODE')
+export const SINGLE_GRAPH_MODE = env.get('SINGLE_GRAPH_MODE')
   .default('false')
   .asBool();
-export const TOEZICHT_GRAPH = env.get('TOEZICHT_GRAPH')
-  .default('http://mu.semte.ch/graphs/organizations/141d9d6b-54af-4d17-b313-8d1c30bc3f5b')
+export const SOURCE_GRAPH = env.get('SOURCE_GRAPH')
+  .default('http://mu.semte.ch/graphs/organizations/141d9d6b-54af-4d17-b313-8d1c30bc3f5b') // ABB
   .asUrlString();
 
 export const GRAPH_TEMPLATE = env.get('GRAPH_TEMPLATE')
