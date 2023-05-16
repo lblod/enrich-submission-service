@@ -36,7 +36,7 @@ app.get('/', function(req, res) {
 app.post('/delta', async function (req, res, next) {
   //We can already send a 200 back. The delta-notifier does not care about the result, as long as the request is closed.
   res.status(200).send().end();
-  
+
   try {
     //Don't trust the delta-notifier, filter as best as possible. We just need the task that was created to get started.
     const actualTaskUris = req.body
@@ -50,9 +50,10 @@ app.post('/delta', async function (req, res, next) {
     for (const taskUri of actualTaskUris) {
       try {
         const organisationId = await getOrganisationIdFromTask(taskUri);
-        const submissionGraph = config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
+        const submissionGraph =
+              config.TOEZICHT_MODE ? config.TOEZICHT_GRAPH : config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
         await updateTaskStatus(taskUri, env.TASK_ONGOING_STATUS, undefined, undefined, submissionGraph);
-        
+
         const submissionDocument = await getSubmissionDocumentFromTask(taskUri);
         const reqState = { req, submissionDocument, organisationId, submissionGraph };
         await calculateActiveForm(submissionDocument, undefined, reqState);
@@ -66,7 +67,8 @@ app.post('/delta', async function (req, res, next) {
         console.error(error);
         const errorUri = await saveError({ message, detail: error.message, });
         const organisationId = await getOrganisationIdFromTask(taskUri);
-        const submissionGraph = config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
+        const submissionGraph =
+              config.TOEZICHT_MODE ? config.TOEZICHT_GRAPH : config.GRAPH_TEMPLATE.replace('~ORGANIZATION_ID~', organisationId);
         await updateTaskStatus(taskUri, env.TASK_FAILURE_STATUS, errorUri, undefined, submissionGraph);
       }
     }
