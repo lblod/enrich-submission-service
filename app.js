@@ -1,28 +1,31 @@
 import { app, errorHandler } from 'mu';
 import bodyParser from 'body-parser';
-import { updateTaskStatus } from './lib/submission-task';
 import {
   getSubmissionDocument,
   deleteSubmissionDocument,
-  getSubmissionDocumentFromTask,
   calculateMetaSnapshot,
   SENT_STATUS,
   calculateActiveForm,
 } from './lib/submission-document';
 import * as env from './env.js';
-import { saveError } from './lib/utils.js';
-import process from 'node:process';
+import * as cts from './automatic-submission-flow-tools/constants.js';
+import * as tsk from './automatic-submission-flow-tools/asfTasks.js';
+import * as del from './automatic-submission-flow-tools/deltas.js';
+import * as smt from './automatic-submission-flow-tools/asfSubmissions.js';
+import * as err from './automatic-submission-flow-tools/errors.js';
+import * as N3 from 'n3';
+const { namedNode } = N3.DataFactory;
 
 function setup() {
-  if (!process.env.ACTIVE_FORM_FILE) {
+  if (!env.ACTIVE_FORM_FILE)
     throw new Error(
       'For this service to work an environment variable ACTIVE_FORM_FILE should be configured and contain a value of the format `share://semantic-forms/20200406160856-forms.ttl`.\nThis variable is used to obtain the current form configuration.'
     );
-  }
 }
 
 setup();
 
+app.use(errorHandler);
 app.use(
   bodyParser.json({
     type: function (req) {
@@ -44,36 +47,50 @@ app.post('/delta', async function (req, res) {
 
   try {
     //Don't trust the delta-notifier, filter as best as possible. We just need the task that was created to get started.
-    const actualTaskUris = req.body
-      .map((changeset) => changeset.inserts)
-      .filter((inserts) => inserts.length > 0)
-      .flat()
-      .filter((insert) => insert.predicate.value === env.OPERATION_PREDICATE)
-      .filter((insert) => insert.object.value === env.ENRICH_OPERATION)
-      .map((insert) => insert.subject.value);
+    const actualTasks = del.getSubjects(
+      req.body,
+      namedNode(cts.PREDICATE_TABLE.task_operation),
+      namedNode(cts.OPERATIONS.enrich)
+    );
 
-    for (const taskUri of actualTaskUris) {
+    for (const task of actualTasks) {
       try {
-        await updateTaskStatus(taskUri, env.TASK_ONGOING_STATUS);
-
-        const submissionDocument = await getSubmissionDocumentFromTask(taskUri);
-        await calculateActiveForm(submissionDocument);
-        const { logicalFileUri } = await calculateMetaSnapshot(
-          submissionDocument
+        await tsk.updateStatus(
+          task,
+          namedNode(cts.TASK_STATUSES.busy),
+          namedNode(cts.SERVICES.enrichSubmission)
         );
 
-        await updateTaskStatus(
-          taskUri,
-          env.TASK_SUCCESS_STATUS,
-          undefined,
-          logicalFileUri
+        const submissionDocument = await smt.getSubmissionDocumentFromTask(
+          task
+        );
+        await calculateActiveForm(submissionDocument.value);
+        const { logicalFileUri } = await calculateMetaSnapshot(
+          submissionDocument.value
+        );
+
+        await tsk.updateStatus(
+          task,
+          namedNode(cts.TASK_STATUSES.success),
+          namedNode(cts.SERVICES.enrichSubmission),
+          { files: [namedNode(logicalFileUri)] }
         );
       } catch (error) {
-        const message = `Something went wrong while enriching for task ${taskUri}`;
+        const message = `Something went wrong while enriching for task ${task.value}`;
         console.error(`${message}\n`, error.message);
         console.error(error);
-        const errorUri = await saveError({ message, detail: error.message });
-        await updateTaskStatus(taskUri, env.TASK_FAILURE_STATUS, errorUri);
+        const errorNode = await err.create(
+          namedNode(cts.SERVICES.enrichSubmission),
+          message,
+          error.message
+        );
+        await tsk.updateStatus(
+          task,
+          namedNode(cts.TASK_STATUSES.failed),
+          namedNode(cts.SERVICES.enrichSubmission),
+          undefined,
+          errorNode
+        );
       }
     }
   } catch (error) {
@@ -81,7 +98,11 @@ app.post('/delta', async function (req, res) {
       'The task for enriching a submission could not even be started or finished due to an unexpected problem.';
     console.error(`${message}\n`, error.message);
     console.error(error);
-    await saveError({ message, detail: error.message });
+    await err.create(
+      namedNode(cts.SERVICES.enrichSubmission),
+      message,
+      error.message
+    );
   }
 });
 
@@ -117,7 +138,7 @@ app.delete('/submission-documents/:uuid', async function (req, res, next) {
   try {
     const { submissionDocument, status } = await deleteSubmissionDocument(uuid);
     if (submissionDocument) {
-      if (status == SENT_STATUS) {
+      if (status.value == SENT_STATUS) {
         return res.status(409).send();
       } else {
         return res.status(200).send();
@@ -133,5 +154,3 @@ app.delete('/submission-documents/:uuid', async function (req, res, next) {
     return next(e);
   }
 });
-
-app.use(errorHandler);
