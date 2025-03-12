@@ -104,8 +104,9 @@ DELETE /submission-documents/:uuid
 ```
 
 Deletes the data and related files on disk for a submission form based on the
-submitted document uuid.
-
+submitted document uuid. This is only possible if the document is not in sent
+status.
+ 
 ### Model
 
 #### Automatic submission task
