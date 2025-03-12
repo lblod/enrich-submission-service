@@ -64,6 +64,22 @@ export default [
 
 ## Reference
 
+### Configuration
+
+Some environment variables can be used to tweak this service. The following
+list can be used in the `environment` mapping of the service definition:
+
+* `GRAPH_TEMPLATE`: <em>(optional, default:
+  `http://mu.semte.ch/graphs/organizations/~ORGANIZATION_ID~/LoketLB-toezichtGebruiker`)
+   </em> this URI represents the graph URI where the form files are stored and
+   retrieved in most cases. There has to be a `~ORGANIZATION_ID~` in it,
+   because that is replaced with the organisation UUID of the requester.
+*  `OVERRULE_ORG_CHECK_ON_READ`: <em>(optional, default: "false")</em> in
+   certain read applications, the graphs containing the data for the
+   submissions isn't always structured per organisation. This service only
+   allows data from graphs containing the organisation UUID unless this boolean
+   is set to "true", ommitting the strict filter.
+
 ### API
 
 #### Delta handling (automatic submissions)
