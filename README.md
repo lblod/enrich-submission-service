@@ -1,4 +1,4 @@
-# enrich-submission-service
+# `enrich-submission-service`
 
 Microservice to enrich a submission harvested from a published document. A
 submission can be enriched with data from the triple store.
@@ -10,7 +10,8 @@ submission can be enriched with data from the triple store.
 Add the following snippet to your `docker-compose.yml`:
 
 ```yml
-  image: lblod/enrich-submission-service
+enrich-submission:
+  image: lblod/enrich-submission-service:X.Y.Z
   environment:
     ACTIVE_FORM_FILE: "share://semantic-forms/<your-active-form-definitions>.ttl"
   volumes:
@@ -85,14 +86,14 @@ Get the data for a submission form based on the submitted document uuid.
 
 Returns an object with
 
-* source: TTL of the harvested data (in case of a concept submission) or sent
+* `source`: TTL of the harvested data (in case of a concept submission) or sent
   data (in case of a sent submission)
-* additions: TTL containing manually added triples
-* removals: TTL containing manually removed triples
-* meta: TTL containing additional data to fill in and validate the forms. The
+* `additions`: TTL containing manually added triples
+* `removals`: TTL containing manually removed triples
+* `meta`: TTL containing additional data to fill in and validate the forms. The
   TTL is a snapshot of the current meta data at the moment of the request. It
   may change over time as long as the submission is in concept state.
-* form: TTL containing the description of the forms. The form is the current
+* `form`: TTL containing the description of the forms. The form is the current
   active form at the moment of the request. It may change over time as long as
   the submission is in concept state.
 
@@ -126,15 +127,15 @@ ___
 #### Automatic submission task statuses
 
 Once the enrichment process starts, the status of the automatic submission task
-is updated to http://redpencil.data.gift/id/concept/JobStatus/busy.
+is updated to `http://redpencil.data.gift/id/concept/JobStatus/busy`.
 
 On successful completion, the status of the automatic submission task is
-updated to http://redpencil.data.gift/id/concept/JobStatus/success. The
-resultsContainer is then linked to the inputContainer of the task, because no
-file has been created or modified, only triples in the database.
+updated to `http://redpencil.data.gift/id/concept/JobStatus/success`. The
+`resultsContainer` is then linked to the `inputContainer` of the task, because
+no file has been created or modified, only triples in the database.
 
 On failure, the status is updated to
-http://redpencil.data.gift/id/concept/JobStatus/failed. If possible, an error
+`http://redpencil.data.gift/id/concept/JobStatus/failed`. If possible, an error
 is written to the database and the error is linked to this failed task.
 
 ___
@@ -172,15 +173,15 @@ service](https://github.com/mu-semtech/file-service#resources).
 
 Possible values of the file type are:
 
-* http://data.lblod.gift/concepts/form-file-type: file containing the semantic
-  form description
-* http://data.lblod.gift/concepts/form-data-file-type: file containing the
+* `http://data.lblod.gift/concepts/form-file-type`: file containing the
+  semantic form description
+* `http://data.lblod.gift/concepts/form-data-file-type`: file containing the
   current filled in data of the form
-* http://data.lblod.gift/concepts/additions-file-type: file containing manually
-  added triples
-* http://data.lblod.gift/concepts/removals-file-type: file containing manually
-  removed triples
-* http://data.lblod.gift/concepts/meta-file-type: file containing additonal
+* `http://data.lblod.gift/concepts/additions-file-type`: file containing
+  manually added triples
+* `http://data.lblod.gift/concepts/removals-file-type`: file containing
+  manually removed triples
+* `http://data.lblod.gift/concepts/meta-file-type`: file containing additonal
   data from the triple store to fill in and validate the form
 
 ## Related services
