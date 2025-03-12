@@ -122,9 +122,7 @@ automatic submission job.
 The model is specified in the [README of the
 job-controller-service](https://github.com/lblod/job-controller-service#task).
 
-___
-
-#### Automatic submission task statuses
+##### Statuses
 
 Once the enrichment process starts, the status of the automatic submission task
 is updated to `http://redpencil.data.gift/id/concept/JobStatus/busy`.
@@ -138,8 +136,6 @@ On failure, the status is updated to
 `http://redpencil.data.gift/id/concept/JobStatus/failed`. If possible, an error
 is written to the database and the error is linked to this failed task.
 
-___
-
 #### Submitted document
 
 ##### Class
@@ -151,8 +147,6 @@ ___
 | Name   | Predicate    | Range                | Definition                                                                                 |
 |--------|--------------|----------------------|--------------------------------------------------------------------------------------------|
 | source | `dct:source` | `nfo:FileDataObject` | TTL files containing data about the submitted document. The TTL files have different types |
-
-___
 
 #### Turtle file
 
