@@ -10,7 +10,6 @@ submission can be enriched with data from the triple store.
 Add the following snippet to your `docker-compose.yml`:
 
 ```yml
-enrich-submission:.
   image: lblod/enrich-submission-service
   environment:
     ACTIVE_FORM_FILE: "share://semantic-forms/<your-active-form-definitions>.ttl"
@@ -19,15 +18,15 @@ enrich-submission:.
     - ./data/files/submissions:/share/submissions
 ```
 
-The `ACTIVE_FORM_FILE` environment variable must contain a URI off the format
+The `ACTIVE_FORM_FILE` environment variable must contain a URI of the format
 `share://semantic-forms/<your-active-form-definitions>.ttl`. This links to the
 Turtle file that contains the currently active form definitions.
 
-The volume mounted in `/share/semantic-forms` must contain all the Turtle files
+The volume mounted on `/share/semantic-forms` must contain all the Turtle files
 containing the current and deprecated form definitions. We recommend adding a
 timestamp to the Turtle files to differentiate over time.
 
-The volume mounted in `/share/submissions` must contain the Turtle files
+The volume mounted on `/share/submissions` must contain the Turtle files
 containing the data harvested from the published documents. The resulting
 Turtle files to fill in the forms will also be written to this folder.
 
@@ -72,7 +71,7 @@ export default [
 POST /delta
 ```
 
-Triggers the enrichment for harvested publications. I.e. associates the current
+Triggers the enrichment for harvested publications. It associates the current
 active form to the submission and prepares a meta TTL containing data from the
 store that is required to fill in and validate the form.
 
