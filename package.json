@@ -1,6 +1,6 @@
 {
   "name": "enrich-submission-service",
-  "version": "1.13.4",
+  "version": "1.13.5",
   "description": "Microservice to enrich a submission harvested from a published document.",
   "repository": {
     "type": "git",
